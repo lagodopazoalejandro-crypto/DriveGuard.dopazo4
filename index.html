@@ -3,736 +3,828 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Asistentes Visuales en Vehículos</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<title>Sistema de Detección de Peatones — STEMBACH 2024-2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #050a14;
-    --surface: #0d1a2e;
-    --accent: #00e5ff;
-    --accent2: #ff3d6b;
-    --accent3: #ffe600;
-    --text: #e8f0fe;
-    --muted: #6b8cae;
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    overflow-x: hidden;
-  }
-
-  /* ── HERO ── */
-  .hero {
-    min-height: 100vh;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    position: relative; overflow: hidden;
-    text-align: center; padding: 2rem;
-  }
-
-  .hero-grid {
-    position: absolute; inset: 0;
-    background-image:
-      linear-gradient(rgba(0,229,255,0.07) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,229,255,0.07) 1px, transparent 1px);
-    background-size: 60px 60px;
-    animation: gridMove 8s linear infinite;
-  }
-  @keyframes gridMove { from{transform:translateY(0)} to{transform:translateY(60px)} }
-
-  .particles { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-  .particle {
-    position: absolute; width: 2px; height: 2px;
-    background: var(--accent); border-radius: 50%;
-    animation: floatUp linear infinite; opacity: 0;
-  }
-  @keyframes floatUp {
-    0%   { transform: translateY(100vh) scale(0); opacity: 0; }
-    10%  { opacity: 1; }
-    90%  { opacity: 0.6; }
-    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
-  }
-
-  .hero-glow {
-    position: absolute; width: 700px; height: 700px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(0,229,255,0.12) 0%, transparent 70%);
-    top: 50%; left: 50%; transform: translate(-50%,-50%);
-    animation: pulse 4s ease-in-out infinite;
-  }
-  @keyframes pulse {
-    0%,100%{ transform:translate(-50%,-50%) scale(1); opacity:.8; }
-    50%    { transform:translate(-50%,-50%) scale(1.2); opacity:1; }
-  }
-
-  .badge {
-    background: rgba(0,229,255,0.1); border: 1px solid rgba(0,229,255,0.3);
-    color: var(--accent); font-size: 0.75rem; letter-spacing: 0.25em;
-    text-transform: uppercase; padding: 0.4rem 1.2rem; border-radius: 999px;
-    margin-bottom: 2rem; position: relative; z-index: 2;
-    animation: fadeDown 0.8s ease both;
-  }
-
-  .hero h1 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(3.5rem, 10vw, 8rem);
-    line-height: 0.95; letter-spacing: 0.02em;
-    position: relative; z-index: 2;
-    animation: fadeDown 0.9s ease 0.1s both;
-  }
-  .hero h1 span { color: var(--accent); }
-
-  /* GLITCH */
-  .glitch { position: relative; display: inline-block; }
-  .glitch::before, .glitch::after {
-    content: attr(data-text);
-    position: absolute; top: 0; left: 0;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: inherit; line-height: inherit; letter-spacing: inherit;
-  }
-  .glitch::before { color: var(--accent2); animation: glitch1 4s infinite; clip-path: polygon(0 30%, 100% 30%, 100% 50%, 0 50%); }
-  .glitch::after  { color: var(--accent);  animation: glitch2 4s infinite; clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%); }
-  @keyframes glitch1 { 0%,88%,100%{transform:none;opacity:0} 90%{transform:translateX(-5px);opacity:.8} 92%{transform:translateX(5px);opacity:.8} 94%{transform:none;opacity:0} }
-  @keyframes glitch2 { 0%,88%,100%{transform:none;opacity:0} 91%{transform:translateX(4px);opacity:.6} 93%{transform:translateX(-4px);opacity:.6} 95%{transform:none;opacity:0} }
-
-  .hero-sub {
-    font-size: 1.1rem; color: var(--muted); max-width: 500px;
-    margin: 1.5rem auto 0; position: relative; z-index: 2;
-    animation: fadeDown 1s ease 0.2s both; font-weight: 300;
-  }
-
-  .authors {
-    display: flex; gap: 0.5rem; flex-wrap: wrap;
-    justify-content: center; margin-top: 2.5rem;
-    position: relative; z-index: 2;
-    animation: fadeDown 1s ease 0.3s both;
-  }
-  .author-chip {
-    background: var(--surface); border: 1px solid rgba(255,255,255,0.08);
-    padding: 0.4rem 1rem; border-radius: 999px; font-size: 0.85rem; color: var(--muted);
-    transition: border-color .3s, color .3s;
-  }
-  .author-chip:hover { border-color: var(--accent); color: var(--accent); }
-
-  .scroll-hint {
-    position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
-    z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
-    color: var(--muted); font-size: 0.75rem; letter-spacing: 0.1em;
-    animation: fadeDown 1.2s ease 0.5s both;
-  }
-  .scroll-line { width: 1px; height: 50px; background: linear-gradient(var(--accent), transparent); animation: scrollLine 2s ease-in-out infinite; }
-  @keyframes scrollLine { 0%,100%{transform:scaleY(1);opacity:1} 50%{transform:scaleY(.4);opacity:.3} }
-
-  @keyframes fadeDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
-
-  /* ── MOTO SECTION ── */
-  .moto-section {
-    padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto;
-    display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
-  }
-  @media(max-width:700px){ .moto-section{grid-template-columns:1fr;gap:2rem;padding:3rem 1.5rem} }
-
-  .moto-photo-wrap {
-    position: relative;
-    opacity: 0; transform: translateX(-40px);
-    transition: opacity 0.8s ease, transform 0.8s ease;
-  }
-  .moto-photo-wrap.visible { opacity: 1; transform: none; }
-
-  .moto-photo {
-    width: 100%; border-radius: 24px; display: block;
-    box-shadow: 0 0 60px rgba(0,229,255,0.15), 0 30px 60px rgba(0,0,0,0.5);
-    transition: transform .4s ease, box-shadow .4s ease;
-  }
-  .moto-photo:hover { transform: scale(1.03) rotate(-1deg); box-shadow: 0 0 80px rgba(0,229,255,0.3), 0 40px 80px rgba(0,0,0,0.6); }
-
-  /* STICKER */
-  .sticker {
-    position: absolute; top: -1.5rem; right: -1.5rem;
-    width: 110px; height: 110px;
-    background: conic-gradient(var(--accent3) 0%, var(--accent2) 33%, var(--accent) 66%, var(--accent3) 100%);
-    border-radius: 50%;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    text-align: center; font-family: 'Bebas Neue', sans-serif; font-size: 0.8rem;
-    color: #000; line-height: 1.1; letter-spacing: 0.05em;
-    animation: stickerBounce 2.5s ease-in-out infinite;
-    box-shadow: 0 0 24px rgba(0,229,255,0.4), 0 8px 20px rgba(0,0,0,0.4);
-    padding: 0.5rem; z-index: 10; cursor: pointer;
-  }
-  @keyframes stickerBounce { 0%,100%{transform:rotate(-8deg) scale(1)} 50%{transform:rotate(8deg) scale(1.1)} }
-  .sticker:hover { animation-play-state: paused; transform: scale(1.2) rotate(0deg) !important; }
-  .sticker-inner { font-size: 1.5rem; line-height: 1; margin-bottom: 2px; }
-
-  /* scan line */
-  .moto-scan { position: absolute; inset: 0; border-radius: 24px; overflow: hidden; pointer-events: none; }
-  .moto-scan::after {
-    content: ''; position: absolute; left: 0; width: 100%; height: 3px;
-    background: linear-gradient(90deg, transparent, rgba(0,229,255,0.6), transparent);
-    animation: scanLine 3.5s ease-in-out infinite;
-  }
-  @keyframes scanLine { 0%{top:0;opacity:1} 80%{top:100%;opacity:.3} 100%{top:100%;opacity:0} }
-
-  .moto-hud {
-    position: absolute; bottom: 1rem; left: 1rem;
-    background: rgba(5,10,20,0.8); backdrop-filter: blur(8px);
-    border: 1px solid rgba(0,229,255,0.25); border-radius: 10px;
-    padding: 0.6rem 1rem; font-size: 0.65rem; letter-spacing: 0.1em; color: var(--accent);
-  }
-  .hud-dot { display: inline-block; width: 6px; height: 6px; background: var(--accent2); border-radius: 50%; margin-right: 5px; animation: blink 1s step-end infinite; }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-
-  .moto-feature-list { display: flex; flex-direction: column; gap: 0.8rem; margin-top: 2rem; }
-  .moto-feature {
-    display: flex; align-items: center; gap: 0.8rem; font-size: 0.9rem;
-    opacity: 0; transform: translateX(20px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
-  }
-  .moto-feature.visible { opacity: 1; transform: none; }
-  .moto-feature:nth-child(1){ transition-delay:.3s }
-  .moto-feature:nth-child(2){ transition-delay:.4s }
-  .moto-feature:nth-child(3){ transition-delay:.5s }
-  .moto-feature:nth-child(4){ transition-delay:.6s }
-
-  .moto-text-side {
-    opacity: 0; transform: translateX(40px);
-    transition: opacity 0.8s ease 0.2s, transform 0.8s ease 0.2s;
-  }
-  .moto-text-side.visible { opacity: 1; transform: none; }
-  .moto-text-side.visible .moto-feature { opacity: 1; transform: none; }
-
-  /* ── GENERAL SECTIONS ── */
-  section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
-
-  .section-label {
-    font-size: .7rem; letter-spacing: .3em; text-transform: uppercase;
-    color: var(--accent); margin-bottom: 1rem;
-    opacity: 0; transform: translateY(20px);
-    transition: opacity .6s ease, transform .6s ease;
-  }
-  .section-title {
-    font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem,6vw,4.5rem); line-height: 1; margin-bottom: 1rem;
-    opacity: 0; transform: translateY(20px);
-    transition: opacity .6s ease .1s, transform .6s ease .1s;
-  }
-  .section-body {
-    font-size: 1.05rem; color: var(--muted); line-height: 1.8; max-width: 600px; font-weight: 300;
-    opacity: 0; transform: translateY(20px);
-    transition: opacity .6s ease .2s, transform .6s ease .2s;
-  }
-  .visible .section-label, .visible .section-title, .visible .section-body { opacity:1; transform:none; }
-
-  /* ── STATS ── */
-  .stats-row { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 1.5rem; margin-top: 4rem; }
-  .stat-card {
-    background: var(--surface); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 2rem 1.5rem; text-align: center;
-    position: relative; overflow: hidden;
-    opacity: 0; transform: translateY(30px);
-    transition: opacity .6s ease, transform .6s ease, border-color .3s, box-shadow .3s;
-  }
-  .stat-card::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 50% 0%,rgba(0,229,255,0.07),transparent 70%); opacity:0; transition:opacity .3s; }
-  .stat-card:hover { border-color:rgba(0,229,255,0.3); box-shadow:0 0 30px rgba(0,229,255,0.08); transform:translateY(-6px) !important; }
-  .stat-card:hover::before { opacity:1; }
-  .stat-card.visible { opacity:1; transform:translateY(0); }
-  .stat-card:nth-child(1){transition-delay:.1s} .stat-card:nth-child(2){transition-delay:.2s}
-  .stat-card:nth-child(3){transition-delay:.3s} .stat-card:nth-child(4){transition-delay:.4s}
-  .stat-number { font-family:'Bebas Neue',sans-serif; font-size:3.5rem; color:var(--accent); display:block; line-height:1; }
-  .stat-desc { font-size:.85rem; color:var(--muted); margin-top:.5rem; line-height:1.5; }
-
-  /* ── STEPS ── */
-  .steps { display:flex; flex-direction:column; gap:0; margin-top:4rem; position:relative; }
-  .steps::before { content:''; position:absolute; left:2rem; top:0; bottom:0; width:1px; background:linear-gradient(var(--accent),var(--accent2),transparent); }
-  .step { display:flex; gap:2rem; padding:2rem 0 2rem 5rem; position:relative; opacity:0; transform:translateX(-30px); transition:opacity .6s ease, transform .6s ease; }
-  .step.visible { opacity:1; transform:none; }
-  .step:nth-child(1){transition-delay:.05s} .step:nth-child(2){transition-delay:.15s}
-  .step:nth-child(3){transition-delay:.25s} .step:nth-child(4){transition-delay:.35s}
-  .step-dot { position:absolute; left:1.35rem; top:2.2rem; width:1.3rem; height:1.3rem; border-radius:50%; background:var(--accent); box-shadow:0 0 12px var(--accent); }
-  .step-content h3 { font-family:'Bebas Neue',sans-serif; font-size:1.8rem; letter-spacing:.05em; margin-bottom:.5rem; }
-  .step-content p { color:var(--muted); font-size:.95rem; line-height:1.7; font-weight:300; }
-
-  /* ── DEMO ── */
-  .demo-area { display:grid; grid-template-columns:1fr 1fr; gap:2rem; margin-top:4rem; }
-  @media(max-width:700px){ .demo-area{grid-template-columns:1fr} }
-
-  .demo-visual { background:var(--surface); border:1px solid rgba(255,255,255,0.06); border-radius:20px; aspect-ratio:4/3; position:relative; overflow:hidden; }
-  .cam-view { width:100%; height:100%; display:flex; align-items:center; justify-content:center; position:relative; background:linear-gradient(180deg,#0a1525 0%,#111e33 100%); }
-  .road { position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:60%; height:70%; background:linear-gradient(180deg,transparent 0%,rgba(30,40,60,.9) 100%); clip-path:polygon(20% 0%,80% 0%,100% 100%,0% 100%); }
-  .road-line { position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:3px; height:50%; background:repeating-linear-gradient(180deg,#ffe600 0,#ffe600 20px,transparent 20px,transparent 40px); animation:roadAnim 1s linear infinite; }
-  @keyframes roadAnim { from{background-position:0 0} to{background-position:0 40px} }
-  .trapezoid-outline { position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:62%; height:72%; border:1px solid rgba(0,229,255,0.5); clip-path:polygon(20% 0%,80% 0%,100% 100%,0% 100%); pointer-events:none; }
-  .person { position:absolute; width:28px; display:flex; flex-direction:column; align-items:center; gap:2px; }
-  .person-head { width:12px; height:12px; border-radius:50%; background:#c8a882; border:2px solid var(--accent2); }
-  .person-body { width:10px; height:16px; border-radius:3px; background:var(--accent2); }
-  .person-box { position:absolute; border:2px solid; border-radius:3px; pointer-events:none; }
-  .detection-label { position:absolute; top:-1.4rem; left:0; font-size:.55rem; font-weight:500; padding:1px 4px; border-radius:2px; white-space:nowrap; letter-spacing:.05em; }
-  .person-a { bottom:30%; left:50%; transform:translateX(-50%); animation:approachA 3s ease-in-out infinite alternate; }
-  @keyframes approachA { from{bottom:55%;transform:translateX(-50%) scale(.5)} to{bottom:22%;transform:translateX(-50%) scale(1.3)} }
-  .box-a { border-color:var(--accent2); width:44px; height:54px; bottom:20%; left:calc(50% - 22px); animation:boxA 3s ease-in-out infinite alternate; }
-  @keyframes boxA { from{width:22px;height:28px;bottom:54%;left:calc(50% - 11px)} to{width:50px;height:62px;bottom:18%;left:calc(50% - 25px)} }
-  .label-a { background:var(--accent2); color:#fff; }
-  .cam-ui { position:absolute; top:.6rem; left:.6rem; font-size:.55rem; letter-spacing:.1em; color:var(--accent); font-weight:500; }
-  .cam-dot { display:inline-block; width:5px; height:5px; background:var(--accent2); border-radius:50%; margin-right:4px; animation:blink 1s step-end infinite; }
-
-  .demo-info { display:flex; flex-direction:column; justify-content:center; gap:1.5rem; }
-  .sound-indicator { background:var(--surface); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:1.5rem; }
-  .sound-title { font-size:.7rem; letter-spacing:.2em; text-transform:uppercase; color:var(--muted); margin-bottom:1rem; }
-  .speaker-row { display:flex; align-items:center; gap:1rem; }
-  .speaker { flex:1; text-align:center; }
-  .speaker-icon { font-size:2rem; line-height:1; display:block; margin-bottom:.3rem; }
-  .speaker-label { font-size:.7rem; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; }
-  .speaker-bar { width:100%; height:4px; background:rgba(255,255,255,0.05); border-radius:999px; overflow:hidden; margin-top:.5rem; }
-  .speaker-fill { height:100%; border-radius:999px; }
-  .fill-left  { animation:fillLeft  3s ease-in-out infinite alternate; }
-  .fill-right { animation:fillRight 3s ease-in-out infinite alternate; }
-  @keyframes fillLeft  { 0%{width:20%;background:var(--accent)} 50%{width:80%;background:var(--accent2)} 100%{width:60%;background:var(--accent2)} }
-  @keyframes fillRight { 0%{width:20%;background:var(--accent)} 50%{width:80%;background:var(--accent2)} 100%{width:60%;background:var(--accent2)} }
-  .speaker-sep { color:var(--muted); font-size:1.5rem; flex-shrink:0; }
-  .freq-display { background:rgba(0,229,255,.05); border:1px solid rgba(0,229,255,.15); border-radius:10px; padding:.8rem 1rem; display:flex; align-items:center; justify-content:space-between; margin-top:.8rem; }
-  .freq-label { font-size:.7rem; color:var(--muted); }
-  .freq-val { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; color:var(--accent); animation:freqAnim 3s ease-in-out infinite alternate; }
-  @keyframes freqAnim { from{color:var(--accent)} to{color:var(--accent2)} }
-  .color-legend { background:var(--surface); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:1.5rem; }
-  .legend-title { font-size:.7rem; letter-spacing:.2em; text-transform:uppercase; color:var(--muted); margin-bottom:1rem; }
-  .legend-item { display:flex; align-items:flex-start; gap:.8rem; margin-bottom:.6rem; }
-  .legend-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; margin-top:3px; }
-  .legend-text { font-size:.85rem; }
-  .legend-sub  { font-size:.75rem; color:var(--muted); }
-
-  /* ── TECH ── */
-  .tech-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1rem; margin-top:3rem; }
-  .tech-card { background:var(--surface); border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:1.5rem 1rem; text-align:center; opacity:0; transform:scale(.9); transition:opacity .5s ease, transform .5s ease, border-color .3s; }
-  .tech-card.visible { opacity:1; transform:scale(1); }
-  .tech-card:nth-child(1){transition-delay:.05s} .tech-card:nth-child(2){transition-delay:.12s}
-  .tech-card:nth-child(3){transition-delay:.19s} .tech-card:nth-child(4){transition-delay:.26s}
-  .tech-card:nth-child(5){transition-delay:.33s}
-  .tech-card:hover { border-color:rgba(0,229,255,.3); transform:scale(1.06) !important; }
-  .tech-icon { font-size:2.2rem; display:block; margin-bottom:.6rem; }
-  .tech-name { font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:.08em; }
-  .tech-desc { font-size:.75rem; color:var(--muted); margin-top:.3rem; }
-
-  /* ── FUTURE ── */
-  .future-list { list-style:none; margin-top:3rem; display:flex; flex-direction:column; gap:1rem; }
-  .future-item { display:flex; align-items:flex-start; gap:1rem; background:var(--surface); border:1px solid rgba(255,255,255,.05); border-radius:14px; padding:1.2rem 1.4rem; opacity:0; transform:translateX(30px); transition:opacity .5s ease, transform .5s ease, border-color .3s; }
-  .future-item.visible { opacity:1; transform:none; }
-  .future-item:nth-child(1){transition-delay:.05s} .future-item:nth-child(2){transition-delay:.12s}
-  .future-item:nth-child(3){transition-delay:.19s} .future-item:nth-child(4){transition-delay:.26s}
-  .future-item:nth-child(5){transition-delay:.33s}
-  .future-item:hover { border-color:rgba(0,229,255,.25); }
-  .future-icon { font-size:1.4rem; flex-shrink:0; }
-  .future-text h4 { font-size:.95rem; margin-bottom:.2rem; }
-  .future-text p  { font-size:.8rem; color:var(--muted); font-weight:300; }
-
-  /* ── INVITATION ── */
-  .invitation-wrap {
-    background: linear-gradient(180deg, var(--bg) 0%, #050d20 50%, var(--bg) 100%);
-    position: relative; overflow: hidden;
-  }
-  .invite-stars {
-    position: absolute; inset: 0; pointer-events: none;
-  }
-  .star {
-    position: absolute; border-radius: 50%;
-    background: #fff; animation: twinkle ease-in-out infinite;
-  }
-  @keyframes twinkle { 0%,100%{opacity:.1;transform:scale(1)} 50%{opacity:.9;transform:scale(1.4)} }
-
-  .invitation-section {
-    padding: 8rem 1.5rem; max-width: 860px; margin: 0 auto; text-align: center; position: relative; z-index: 1;
-  }
-
-  .invite-eyebrow {
-    font-size: .75rem; letter-spacing: .35em; text-transform: uppercase;
-    color: var(--accent3); margin-bottom: 1.5rem;
-    opacity: 0; transition: opacity .6s ease;
-  }
-  .invite-eyebrow.vis { opacity: 1; }
-
-  .invite-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(3.5rem, 11vw, 7rem);
-    line-height: .92; letter-spacing: .02em;
-    opacity: 0; transform: scale(.9);
-    transition: opacity .8s ease .1s, transform .8s ease .1s;
-  }
-  .invite-title.vis { opacity: 1; transform: scale(1); }
-  .invite-title .hl-cyan { color: var(--accent); }
-  .invite-title .hl-red  { color: var(--accent2); }
-
-  .invite-sub {
-    font-size: 1.1rem; color: var(--muted); margin: 1.8rem auto 0;
-    max-width: 480px; font-weight: 300; line-height: 1.7;
-    opacity: 0; transition: opacity .6s ease .3s;
-  }
-  .invite-sub.vis { opacity: 1; }
-
-  /* Date chips */
-  .date-chips {
-    display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2.5rem;
-    opacity: 0; transition: opacity .6s ease .45s;
-  }
-  .date-chips.vis { opacity: 1; }
-  .date-chip {
-    display: flex; align-items: center; gap: .7rem;
-    background: var(--surface); border: 1px solid rgba(255,255,255,.08);
-    border-radius: 14px; padding: .9rem 1.4rem;
-    transition: border-color .3s, transform .3s;
-  }
-  .date-chip:hover { border-color: var(--accent); transform: translateY(-4px); }
-  .date-chip .ci { font-size: 1.3rem; }
-  .date-chip strong { display: block; font-size: .95rem; }
-  .date-chip small  { display: block; font-size: .75rem; color: var(--muted); }
-
-  /* Video */
-  .video-outer {
-    margin-top: 3.5rem; position: relative; display: flex; justify-content: center;
-    opacity: 0; transform: translateY(40px);
-    transition: opacity .8s ease .55s, transform .8s ease .55s;
-  }
-  .video-outer.vis { opacity: 1; transform: translateY(0); }
-
-  .video-ring-wrap {
-    position: relative; border-radius: 26px; padding: 3px;
-    background: conic-gradient(var(--accent), var(--accent2), var(--accent3), var(--accent));
-    animation: ringRotate 5s linear infinite;
-    max-width: 340px; width: 100%;
-  }
-  @keyframes ringRotate { to{transform:rotate(360deg)} }
-
-  .video-inner {
-    border-radius: 23px; overflow: hidden;
-    background: #000;
-    aspect-ratio: 9/16;
-  }
-  .video-inner iframe { width:100%; height:100%; border:none; display:block; }
-
-  .video-glow {
-    position: absolute; inset: -20px; border-radius: 40px;
-    background: radial-gradient(ellipse at center, rgba(0,229,255,.15) 0%, transparent 70%);
-    pointer-events: none; z-index: -1;
-    animation: videoGlowPulse 3s ease-in-out infinite;
-  }
-  @keyframes videoGlowPulse { 0%,100%{opacity:.6} 50%{opacity:1} }
-
-  /* Confetti */
-  .confetti-piece {
-    position: fixed; pointer-events: none; border-radius: 2px;
-    opacity: 0; animation: confettiFall 2.5s ease forwards; z-index: 9999;
-  }
-  @keyframes confettiFall { 0%{opacity:1;transform:translate(0,0) rotate(0deg)} 100%{opacity:0;transform:translate(var(--tx),var(--ty)) rotate(var(--rot))} }
-
-  /* ── DIVIDER ── */
-  .divider { width:100%; height:1px; background:linear-gradient(90deg,transparent,rgba(0,229,255,.2),transparent); }
-
-  /* ── FOOTER ── */
-  footer { border-top:1px solid rgba(255,255,255,.05); padding:3rem 1.5rem; text-align:center; color:var(--muted); font-size:.8rem; }
-  .footer-logo { font-family:'Bebas Neue',sans-serif; font-size:1.8rem; color:var(--accent); letter-spacing:.1em; margin-bottom:.5rem; }
-
-  @media(max-width:600px){ .steps::before{left:1rem} .step{padding-left:3rem} .step-dot{left:.35rem} }
+:root {
+  --bg:      #04070f;
+  --navy:    #080e1c;
+  --card:    #0d1428;
+  --card2:   #111930;
+  --cyan:    #00e8ff;
+  --purple:  #8844ff;
+  --orange:  #ff7200;
+  --green:   #00ff90;
+  --yellow:  #ffdd00;
+  --magenta: #ff0088;
+  --white:   #ffffff;
+  --off:     #c8d8f0;
+  --muted:   #5a7090;
+  --border:  rgba(0,232,255,0.15);
+}
+ 
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--off);font-family:'Inter',sans-serif;overflow-x:hidden}
+ 
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--cyan);border-radius:2px}
+ 
+/* ── HERO ── */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  position:relative;overflow:hidden;text-align:center;padding:2rem;
+}
+ 
+/* Grid background */
+.hero-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(0,232,255,0.055) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,232,255,0.055) 1px,transparent 1px);
+  background-size:50px 50px;
+  animation:gridScroll 10s linear infinite;
+}
+@keyframes gridScroll{from{transform:translateY(0)}to{transform:translateY(50px)}}
+ 
+/* Scanning line */
+.hero-scan{
+  position:absolute;left:0;width:100%;height:2px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+  animation:scanLine 4s linear infinite;opacity:0.6;
+}
+@keyframes scanLine{from{top:-2px}to{top:100%}}
+ 
+/* Corner frames */
+.corner{position:absolute;width:60px;height:60px}
+.corner::before,.corner::after{content:'';position:absolute;background:var(--cyan)}
+.corner::before{width:2px;height:100%}
+.corner::after{width:100%;height:2px}
+.corner.tl{top:1.5rem;left:1.5rem}
+.corner.tr{top:1.5rem;right:1.5rem;transform:scaleX(-1)}
+.corner.bl{bottom:1.5rem;left:1.5rem;transform:scaleY(-1)}
+.corner.br{bottom:1.5rem;right:1.5rem;transform:scale(-1)}
+ 
+.hero-glow{
+  position:absolute;width:800px;height:800px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,232,255,0.08) 0%,transparent 70%);
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  animation:glowPulse 5s ease-in-out infinite;
+}
+@keyframes glowPulse{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.6}50%{transform:translate(-50%,-50%) scale(1.15);opacity:1}}
+ 
+/* Floating particles */
+.particles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.pt{position:absolute;border-radius:50%;animation:floatPt linear infinite;opacity:0}
+@keyframes floatPt{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:1}85%{opacity:.5}100%{transform:translateY(-5vh) scale(1);opacity:0}}
+ 
+/* Hero content */
+.hero-eyebrow{
+  position:relative;z-index:2;
+  background:rgba(0,232,255,0.08);border:1px solid rgba(0,232,255,0.25);
+  color:var(--cyan);font-size:.72rem;letter-spacing:.3em;text-transform:uppercase;
+  padding:.4rem 1.4rem;border-radius:999px;margin-bottom:2.5rem;
+  animation:fadeUp .8s ease both;
+}
+ 
+.hero-title{
+  position:relative;z-index:2;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(3.5rem,11vw,9rem);
+  line-height:.9;letter-spacing:.02em;
+  animation:fadeUp .9s ease .1s both;
+}
+.hero-title .line-cyan{color:var(--cyan);display:block}
+.hero-title .line-white{color:var(--white);display:block}
+ 
+/* Glitch on DETECCIÓN */
+.glitch{position:relative;display:inline-block}
+.glitch::before,.glitch::after{
+  content:attr(data-text);position:absolute;top:0;left:0;
+  font-family:'Bebas Neue',sans-serif;font-size:inherit;line-height:inherit;
+}
+.glitch::before{color:var(--magenta);animation:g1 5s infinite;clip-path:polygon(0 20%,100% 20%,100% 45%,0 45%)}
+.glitch::after{color:var(--purple);animation:g2 5s infinite;clip-path:polygon(0 60%,100% 60%,100% 80%,0 80%)}
+@keyframes g1{0%,90%,100%{transform:none;opacity:0}92%{transform:translateX(-6px);opacity:.9}94%{transform:translateX(6px);opacity:.9}96%{opacity:0}}
+@keyframes g2{0%,90%,100%{transform:none;opacity:0}93%{transform:translateX(5px);opacity:.7}95%{transform:translateX(-5px);opacity:.7}97%{opacity:0}}
+ 
+.hero-sub{
+  position:relative;z-index:2;
+  font-size:1.05rem;color:var(--muted);max-width:520px;
+  margin:1.8rem auto 0;font-weight:300;line-height:1.7;
+  animation:fadeUp 1s ease .25s both;
+}
+ 
+.hero-authors{
+  display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center;
+  margin-top:2.5rem;position:relative;z-index:2;
+  animation:fadeUp 1s ease .4s both;
+}
+.author-pill{
+  background:var(--card);border:1px solid var(--border);
+  color:var(--muted);padding:.38rem 1.1rem;border-radius:999px;font-size:.82rem;
+  transition:border-color .3s,color .3s;
+}
+.author-pill:hover{border-color:var(--cyan);color:var(--cyan)}
+ 
+.scroll-cue{
+  position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
+  z-index:2;display:flex;flex-direction:column;align-items:center;gap:.5rem;
+  color:var(--muted);font-size:.7rem;letter-spacing:.15em;
+  animation:fadeUp 1.2s ease .6s both;
+}
+.scroll-bar{width:1px;height:48px;background:linear-gradient(var(--cyan),transparent);animation:scrollPulse 2.2s ease-in-out infinite}
+@keyframes scrollPulse{0%,100%{transform:scaleY(1);opacity:1}50%{transform:scaleY(.4);opacity:.3}}
+ 
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+ 
+/* ── SECTION WRAPPER ── */
+.section{padding:6rem 1.5rem;max-width:1100px;margin:0 auto}
+ 
+.section-tag{
+  font-size:.68rem;letter-spacing:.32em;text-transform:uppercase;
+  color:var(--cyan);margin-bottom:.9rem;
+  opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease;
+}
+.section-headline{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(2.4rem,6vw,4.5rem);line-height:1;margin-bottom:1rem;
+  opacity:0;transform:translateY(18px);
+  transition:opacity .6s ease .1s,transform .6s ease .1s;
+}
+.section-body{
+  font-size:1rem;color:var(--muted);line-height:1.8;max-width:600px;font-weight:300;
+  opacity:0;transform:translateY(18px);
+  transition:opacity .6s ease .2s,transform .6s ease .2s;
+}
+.visible .section-tag,.visible .section-headline,.visible .section-body{opacity:1;transform:none}
+ 
+/* ── DIVIDER ── */
+.divider{height:1px;background:linear-gradient(90deg,transparent,rgba(0,232,255,.18),transparent)}
+ 
+/* ── STAT CARDS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.2rem;margin-top:3.5rem}
+.stat-card{
+  background:var(--card);border:1px solid rgba(255,255,255,.05);
+  border-radius:16px;padding:2rem 1.4rem;text-align:center;
+  opacity:0;transform:translateY(28px);
+  transition:opacity .5s ease,transform .5s ease,border-color .3s,box-shadow .3s;
+  position:relative;overflow:hidden;
+}
+.stat-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% -10%,rgba(0,232,255,.06),transparent 65%);opacity:0;transition:opacity .3s}
+.stat-card:hover{border-color:rgba(0,232,255,.3);box-shadow:0 0 28px rgba(0,232,255,.07);transform:translateY(-6px)!important}
+.stat-card:hover::before{opacity:1}
+.stat-card.visible{opacity:1;transform:translateY(0)}
+.stat-card:nth-child(1){transition-delay:.05s}.stat-card:nth-child(2){transition-delay:.15s}
+.stat-card:nth-child(3){transition-delay:.25s}.stat-card:nth-child(4){transition-delay:.35s}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:3.5rem;color:var(--cyan);line-height:1;display:block}
+.stat-label{font-size:.82rem;color:var(--muted);margin-top:.4rem;line-height:1.5}
+ 
+/* ── STEPS ── */
+.steps{position:relative;display:flex;flex-direction:column;gap:0;margin-top:3.5rem}
+.steps::before{content:'';position:absolute;left:2rem;top:0;bottom:0;width:1px;background:linear-gradient(var(--cyan),var(--purple),var(--orange),transparent)}
+.step{display:flex;gap:2rem;padding:2rem 0 2rem 5.2rem;position:relative;opacity:0;transform:translateX(-28px);transition:opacity .6s ease,transform .6s ease}
+.step.visible{opacity:1;transform:none}
+.step:nth-child(1){transition-delay:.05s}.step:nth-child(2){transition-delay:.15s}
+.step:nth-child(3){transition-delay:.25s}.step:nth-child(4){transition-delay:.35s}
+.step-dot{position:absolute;left:1.38rem;top:2.2rem;width:1.25rem;height:1.25rem;border-radius:50%;background:var(--cyan);box-shadow:0 0 14px var(--cyan)}
+.step h3{font-size:1.1rem;font-weight:600;margin-bottom:.45rem}
+.step p{color:var(--muted);font-size:.92rem;line-height:1.7;font-weight:300}
+ 
+/* ── MT-125 SECTION ── */
+.moto-section{
+  max-width:1100px;margin:0 auto;padding:6rem 1.5rem;
+  display:grid;grid-template-columns:1fr 1fr;gap:3.5rem;align-items:center;
+}
+@media(max-width:720px){.moto-section{grid-template-columns:1fr;gap:2rem;padding:3rem 1.5rem}}
+ 
+.moto-canvas-wrap{
+  position:relative;opacity:0;transform:translateX(-36px);
+  transition:opacity .8s ease,transform .8s ease;
+}
+.moto-canvas-wrap.visible{opacity:1;transform:none}
+ 
+.moto-svg-container{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:20px;overflow:hidden;position:relative;
+  box-shadow:0 0 60px rgba(0,232,255,.08),0 30px 60px rgba(0,0,0,.5);
+}
+ 
+/* HUD overlay on moto */
+.hud-bar{
+  position:absolute;bottom:0;left:0;right:0;
+  background:rgba(4,7,15,.82);backdrop-filter:blur(8px);
+  border-top:1px solid rgba(0,232,255,.25);
+  padding:.55rem 1rem;font-size:.62rem;letter-spacing:.1em;color:var(--cyan);
+  display:flex;align-items:center;gap:.4rem;
+}
+.hud-rec{width:6px;height:6px;background:var(--magenta);border-radius:50%;animation:blink 1s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+ 
+/* Limitation badges */
+.limit-badges{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1.4rem}
+.lbadge{
+  display:inline-flex;align-items:center;gap:.4rem;
+  background:rgba(255,0,136,.08);border:1px solid rgba(255,0,136,.3);
+  color:#ff6eb0;font-size:.78rem;padding:.3rem .85rem;border-radius:999px;
+  opacity:0;transform:translateX(-12px);
+  transition:opacity .4s ease,transform .4s ease;
+}
+.lbadge.vis{opacity:1;transform:none}
+.lbadge.vs-good{background:rgba(0,232,255,.08);border-color:rgba(0,232,255,.3);color:var(--cyan)}
+.lbadge::before{content:'✗';font-weight:700}
+.lbadge.vs-good::before{content:'✓'}
+ 
+.moto-text-side{opacity:0;transform:translateX(36px);transition:opacity .8s ease .2s,transform .8s ease .2s}
+.moto-text-side.visible{opacity:1;transform:none}
+.moto-tag{font-size:.7rem;letter-spacing:.3em;text-transform:uppercase;color:var(--purple);margin-bottom:.9rem}
+.moto-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.4rem,5vw,3.8rem);line-height:1;margin-bottom:1.2rem}
+.moto-title span{color:var(--cyan)}
+.moto-desc{font-size:1rem;color:var(--muted);line-height:1.8;font-weight:300;max-width:420px;margin-bottom:1.5rem}
+ 
+/* Comparison table */
+.comp-table{width:100%;border-collapse:collapse;margin-top:1.4rem}
+.comp-table th{font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);padding:.5rem .8rem;text-align:left;border-bottom:1px solid rgba(255,255,255,.06)}
+.comp-table td{padding:.65rem .8rem;font-size:.88rem;border-bottom:1px solid rgba(255,255,255,.04)}
+.comp-table tr:last-child td{border-bottom:none}
+.comp-table .before{color:#ff6eb0}
+.comp-table .after{color:var(--cyan)}
+.comp-table .label{color:var(--off);font-weight:500}
+ 
+/* ── DEMO ── */
+.demo-area{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:3.5rem}
+@media(max-width:700px){.demo-area{grid-template-columns:1fr}}
+ 
+.demo-visual{
+  background:var(--card);border:1px solid rgba(255,255,255,.06);
+  border-radius:20px;aspect-ratio:4/3;overflow:hidden;position:relative;
+}
+.cam-view{width:100%;height:100%;position:relative;background:linear-gradient(180deg,#080e1c 0%,#0c1526 100%)}
+ 
+/* Road perspective */
+.road{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:60%;height:72%;background:linear-gradient(180deg,transparent,rgba(22,35,55,.9));clip-path:polygon(18% 0%,82% 0%,100% 100%,0% 100%)}
+.road-dashes{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:3px;height:52%;background:repeating-linear-gradient(180deg,var(--yellow) 0,var(--yellow) 18px,transparent 18px,transparent 36px);animation:dashAnim 1s linear infinite}
+@keyframes dashAnim{from{background-position:0 0}to{background-position:0 36px}}
+ 
+.trapezoid-outline{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:62%;height:73%;border:1.5px solid rgba(0,232,255,.5);clip-path:polygon(18% 0%,82% 0%,100% 100%,0% 100%);pointer-events:none}
+.trap-glow{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:62%;height:73%;clip-path:polygon(18% 0%,82% 0%,100% 100%,0% 100%);background:linear-gradient(180deg,transparent 40%,rgba(0,232,255,.04));pointer-events:none}
+ 
+/* Person */
+.person-fig{position:absolute;display:flex;flex-direction:column;align-items:center;gap:2px;animation:personApproach 3s ease-in-out infinite alternate}
+@keyframes personApproach{from{bottom:56%;transform:translateX(-50%) scale(.45)}to{bottom:20%;transform:translateX(-50%) scale(1.3)}}
+.person-head{width:12px;height:12px;border-radius:50%;background:#c8a88a;border:2px solid var(--magenta)}
+.person-body{width:10px;height:16px;border-radius:3px;background:var(--magenta)}
+ 
+/* Detection box */
+.det-box{position:absolute;border:2px solid;border-radius:3px;pointer-events:none;animation:boxApproach 3s ease-in-out infinite alternate}
+@keyframes boxApproach{from{width:22px;height:28px;bottom:54%;left:calc(50% - 11px);border-color:var(--green)}to{width:50px;height:64px;bottom:17%;left:calc(50% - 25px);border-color:var(--magenta)}}
+.det-label{position:absolute;top:-1.3rem;left:0;font-size:.52rem;font-weight:600;padding:2px 5px;border-radius:2px;white-space:nowrap}
+ 
+/* Camera HUD */
+.cam-hud{position:absolute;top:.55rem;left:.55rem;font-size:.52rem;letter-spacing:.1em;color:var(--cyan);font-weight:600}
+.cam-blink{display:inline-block;width:5px;height:5px;background:var(--magenta);border-radius:50%;margin-right:4px;animation:blink 1s step-end infinite}
+ 
+/* Demo info panel */
+.demo-info{display:flex;flex-direction:column;gap:1.4rem}
+.info-card{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:1.4rem}
+.info-card-title{font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem}
+ 
+/* Speakers */
+.speaker-row{display:flex;align-items:center;gap:1rem}
+.speaker{flex:1;text-align:center}
+.speaker-icon{font-size:1.8rem;display:block;margin-bottom:.25rem}
+.speaker-name{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.spk-bar{width:100%;height:4px;background:rgba(255,255,255,.05);border-radius:999px;overflow:hidden;margin-top:.4rem}
+.spk-fill{height:100%;border-radius:999px;background:var(--cyan)}
+.spk-l{animation:spkL 3s ease-in-out infinite alternate}
+.spk-r{animation:spkR 3s ease-in-out infinite alternate}
+@keyframes spkL{0%{width:15%;background:var(--cyan)}50%{width:85%;background:var(--magenta)}100%{width:55%;background:var(--magenta)}}
+@keyframes spkR{0%{width:15%;background:var(--cyan)}50%{width:85%;background:var(--magenta)}100%{width:55%;background:var(--magenta)}}
+.spk-sep{color:var(--muted);flex-shrink:0}
+ 
+.freq-row{background:rgba(0,232,255,.05);border:1px solid rgba(0,232,255,.12);border-radius:10px;padding:.7rem 1rem;display:flex;justify-content:space-between;align-items:center;margin-top:.75rem}
+.freq-lbl{font-size:.68rem;color:var(--muted)}
+.freq-val{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--cyan);animation:freqCycle 3s ease-in-out infinite alternate}
+@keyframes freqCycle{from{color:var(--cyan)}to{color:var(--magenta)}}
+ 
+/* Legend */
+.legend-row{display:flex;align-items:flex-start;gap:.7rem;margin-bottom:.55rem}
+.legend-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.legend-name{font-size:.82rem;font-weight:500}
+.legend-sub{font-size:.72rem;color:var(--muted)}
+ 
+/* ── TECH GRID ── */
+.tech-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:1rem;margin-top:3rem}
+.tech-card{
+  background:var(--card);border:1px solid rgba(255,255,255,.05);
+  border-radius:14px;padding:1.4rem 1rem;text-align:center;
+  opacity:0;transform:scale(.9);transition:opacity .5s ease,transform .5s ease,border-color .3s;
+}
+.tech-card.visible{opacity:1;transform:scale(1)}
+.tech-card:nth-child(1){transition-delay:.04s}.tech-card:nth-child(2){transition-delay:.1s}
+.tech-card:nth-child(3){transition-delay:.16s}.tech-card:nth-child(4){transition-delay:.22s}
+.tech-card:nth-child(5){transition-delay:.28s}
+.tech-card:hover{border-color:rgba(0,232,255,.28);transform:scale(1.05)!important}
+.tech-icon{font-size:2.1rem;display:block;margin-bottom:.55rem}
+.tech-name{font-family:'Bebas Neue',sans-serif;font-size:1.05rem;letter-spacing:.06em}
+.tech-desc{font-size:.72rem;color:var(--muted);margin-top:.25rem}
+ 
+/* ── FUTURE LIST ── */
+.future-list{list-style:none;display:flex;flex-direction:column;gap:1rem;margin-top:3rem}
+.future-item{
+  display:flex;align-items:flex-start;gap:1rem;
+  background:var(--card);border:1px solid rgba(255,255,255,.04);
+  border-radius:14px;padding:1.1rem 1.3rem;
+  opacity:0;transform:translateX(28px);transition:opacity .5s ease,transform .5s ease,border-color .3s;
+}
+.future-item.visible{opacity:1;transform:none}
+.future-item:nth-child(1){transition-delay:.04s}.future-item:nth-child(2){transition-delay:.1s}
+.future-item:nth-child(3){transition-delay:.16s}.future-item:nth-child(4){transition-delay:.22s}
+.future-item:nth-child(5){transition-delay:.28s}
+.future-item:hover{border-color:rgba(0,232,255,.22)}
+.f-icon{font-size:1.3rem;flex-shrink:0}
+.f-title{font-size:.92rem;font-weight:600;margin-bottom:.18rem}
+.f-desc{font-size:.78rem;color:var(--muted);font-weight:300}
+ 
+/* ── FOOTER ── */
+footer{border-top:1px solid rgba(255,255,255,.04);padding:3rem 1.5rem;text-align:center;color:var(--muted);font-size:.78rem}
+.footer-logo{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;color:var(--cyan);letter-spacing:.12em;margin-bottom:.4rem}
+ 
+/* ── RESPONSIVE ── */
+@media(max-width:600px){.steps::before{left:1rem}.step{padding-left:3rem}.step-dot{left:.38rem}}
 </style>
 </head>
 <body>
-
+ 
 <!-- ═══ HERO ═══ -->
 <div class="hero">
   <div class="hero-grid"></div>
-  <div class="particles" id="particles"></div>
+  <div class="hero-scan"></div>
   <div class="hero-glow"></div>
-
-  <div class="badge">STEMBACH 2024–2026 · CPR Liceo La Paz × UDC</div>
-
-  <h1>
-    ASISTENTES<br>
-    <span class="glitch" data-text="VISUALES">VISUALES</span><br>
-    EN <span>VEHÍCULOS</span>
+  <div class="particles" id="particles"></div>
+  <div class="corner tl"></div>
+  <div class="corner tr"></div>
+  <div class="corner bl"></div>
+  <div class="corner br"></div>
+ 
+  <div class="hero-eyebrow">STEMBACH 2024–2026 · CPR Liceo La Paz × Universidade da Coruña</div>
+ 
+  <h1 class="hero-title">
+    <span class="line-white">SISTEMA DE</span>
+    <span class="line-cyan"><span class="glitch" data-text="DETECCIÓN">DETECCIÓN</span></span>
+    <span class="line-white">DE PEATONES</span>
   </h1>
-
-  <p class="hero-sub">Un sistema de detección de peatones en tiempo real con alertas sonoras direccionales</p>
-
-  <div class="authors">
-    <span class="author-chip">Pablo Castelao Fernández</span>
-    <span class="author-chip">Alejandro Lago Dopazo</span>
+ 
+  <p class="hero-sub">
+    Inteligencia Artificial · AR-HUD · Seguridad Vial<br>
+    Detección en tiempo real con alertas sonoras direccionales para motocicletas
+  </p>
+ 
+  <div class="hero-authors">
+    <span class="author-pill">Pablo Castelao Fernández</span>
+    <span class="author-pill">Alejandro Lago Dopazo</span>
   </div>
-
-  <div class="scroll-hint">
-    <div class="scroll-line"></div>
+ 
+  <div class="scroll-cue">
+    <div class="scroll-bar"></div>
     SCROLL
   </div>
 </div>
-
+ 
 <div class="divider"></div>
-
-<!-- ═══ MOTO ═══ -->
-<div class="moto-section">
-  <div class="moto-photo-wrap" id="motoPhotoWrap">
-    <img src="/mnt/user-data/uploads/IMG_4690.jpeg" alt="Yamaha MT-125" class="moto-photo" />
-    <div class="moto-scan"></div>
-    <div class="moto-hud"><span class="hud-dot"></span>YAMAHA MT-125 · SISTEMA ACTIVO</div>
-    <div class="sticker"><div class="sticker-inner">🏍️</div>YAMAHA<br>MT-125</div>
-  </div>
-
-  <div class="moto-text-side" id="motoTextSide">
-    <p style="font-size:.7rem;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem">El vehículo de prueba</p>
-    <h2 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,5vw,4rem);line-height:1;margin-bottom:1rem">
-      Yamaha<br><span style="color:var(--accent)">MT-125</span>
-    </h2>
-    <p style="font-size:1rem;color:var(--muted);line-height:1.8;font-weight:300;max-width:420px">
-      La MT-125 es el tipo de moto donde sistemas como el nuestro pueden marcar la diferencia. Sin pantalla HUD, sin detección de peatones… todavía.
-    </p>
-    <div class="moto-feature-list">
-      <div class="moto-feature"><span style="color:var(--accent)">✓</span><span style="color:var(--muted)">Detección de peatones en tiempo real</span></div>
-      <div class="moto-feature"><span style="color:var(--accent)">✓</span><span style="color:var(--muted)">Alerta sonora estéreo direccional</span></div>
-      <div class="moto-feature"><span style="color:var(--accent)">✓</span><span style="color:var(--muted)">Código color: verde / amarillo / rojo</span></div>
-      <div class="moto-feature"><span style="color:var(--accent3)">◎</span><span style="color:var(--muted)">Integración real en moto — próximamente</span></div>
-    </div>
-  </div>
-</div>
-
-<div class="divider"></div>
-
+ 
 <!-- ═══ EL PROBLEMA ═══ -->
-<section class="reveal-section">
-  <p class="section-label">¿Por qué?</p>
-  <h2 class="section-title">El problema<br>es real</h2>
-  <p class="section-body">Entre el 80 y el 90 % de los accidentes de tráfico se deben a errores humanos. Las distracciones son la principal causa.</p>
-  <div class="stats-row">
-    <div class="stat-card"><span class="stat-number">90%</span><p class="stat-desc">de accidentes causados por errores humanos</p></div>
-    <div class="stat-card"><span class="stat-number">40%</span><p class="stat-desc">de atropellos evitables con vigilancia de ángulos muertos</p></div>
-    <div class="stat-card"><span class="stat-number">35%</span><p class="stat-desc">menos distracciones con detección de somnolencia</p></div>
-    <div class="stat-card"><span class="stat-number">30%</span><p class="stat-desc">de accidentes tienen la distracción como causa directa</p></div>
+<section class="section reveal-section">
+  <p class="section-tag">¿Por qué este proyecto?</p>
+  <h2 class="section-headline">El problema<br>es real</h2>
+  <p class="section-body">Entre el 80 y el 90 % de los accidentes de tráfico se deben a errores humanos. Las distracciones son la principal causa — y la tecnología puede cambiar eso.</p>
+  <div class="stats-grid">
+    <div class="stat-card"><span class="stat-num">90%</span><p class="stat-label">de accidentes causados por errores humanos</p></div>
+    <div class="stat-card"><span class="stat-num">40%</span><p class="stat-label">de atropellos evitables con ángulos muertos</p></div>
+    <div class="stat-card"><span class="stat-num">35%</span><p class="stat-label">menos distracciones con asistentes ADAS</p></div>
+    <div class="stat-card"><span class="stat-num">30%</span><p class="stat-label">de accidentes tienen la distracción como causa</p></div>
   </div>
 </section>
-
+ 
 <div class="divider"></div>
-
+ 
 <!-- ═══ CÓMO FUNCIONA ═══ -->
-<section class="reveal-section">
-  <p class="section-label">El sistema</p>
-  <h2 class="section-title">¿Cómo<br>funciona?</h2>
+<section class="section reveal-section">
+  <p class="section-tag">El sistema</p>
+  <h2 class="section-headline">¿Cómo<br>funciona?</h2>
   <p class="section-body">Un programa en Python que analiza lo que ve una cámara en tiempo real y avisa al conductor con un pitido estéreo.</p>
   <div class="steps">
-    <div class="step"><div class="step-dot"></div><div class="step-content"><h3>📷 Captura de imagen</h3><p>Una cámara graba lo que hay delante del vehículo en tiempo real a resolución 1280×720.</p></div></div>
-    <div class="step"><div class="step-dot" style="background:var(--accent2);box-shadow:0 0 12px var(--accent2)"></div><div class="step-content"><h3>🧠 Detección con YOLO</h3><p>El modelo de IA YOLOv8 analiza cada frame buscando personas dentro de una zona trapezoidal que simula la carretera.</p></div></div>
-    <div class="step"><div class="step-dot" style="background:var(--accent3);box-shadow:0 0 12px var(--accent3)"></div><div class="step-content"><h3>📏 ¿Lejos, media o cerca?</h3><p>El sistema estima la distancia según el tamaño del peatón. Verde = lejos · Amarillo = media · Rojo = cerca.</p></div></div>
-    <div class="step"><div class="step-dot" style="background:#a855f7;box-shadow:0 0 12px #a855f7"></div><div class="step-content"><h3>🔊 Pitido direccional</h3><p>Suena por la izquierda, la derecha o ambos altavoces según dónde esté el peatón. A más cerca, mayor frecuencia.</p></div></div>
+    <div class="step"><div class="step-dot"></div><div><h3>📷 Captura de imagen</h3><p>Una cámara graba lo que hay delante del vehículo en tiempo real a resolución 1280×720.</p></div></div>
+    <div class="step"><div class="step-dot" style="background:var(--magenta);box-shadow:0 0 14px var(--magenta)"></div><div><h3>🧠 Detección con YOLOv8</h3><p>El modelo de IA analiza cada frame buscando personas dentro de una zona trapezoidal que simula la carretera.</p></div></div>
+    <div class="step"><div class="step-dot" style="background:var(--yellow);box-shadow:0 0 14px var(--yellow)"></div><div><h3>📏 Distancia: LEJOS · MEDIA · CERCA</h3><p>Según el tamaño del peatón en la imagen: verde = lejos, amarillo = media distancia, rojo = cerca.</p></div></div>
+    <div class="step"><div class="step-dot" style="background:var(--purple);box-shadow:0 0 14px var(--purple)"></div><div><h3>🔊 Pitido estéreo direccional</h3><p>Suena por izquierda, derecha o ambos altavoces según la posición del peatón. A más cerca, mayor frecuencia.</p></div></div>
   </div>
 </section>
-
+ 
 <div class="divider"></div>
-
-<!-- ═══ DEMO ═══ -->
-<section class="reveal-section">
-  <p class="section-label">Visualización</p>
-  <h2 class="section-title">El sistema<br>en acción</h2>
-  <p class="section-body">El trapecio azul delimita la carretera. El rectángulo cambia de color según la distancia del peatón.</p>
+ 
+<!-- ═══ YAMAHA MT-125 — LIMITACIONES ═══ -->
+<div class="moto-section">
+ 
+  <!-- SVG ANIMADA MT-125 -->
+  <div class="moto-canvas-wrap" id="motoWrap">
+    <div class="moto-svg-container">
+ 
+      <!-- MT-125 SVG illustration with animated limitations -->
+      <svg viewBox="0 0 520 360" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;background:#080e1c">
+        <defs>
+          <radialGradient id="glow-cyan" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#00e8ff" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="#00e8ff" stop-opacity="0"/>
+          </radialGradient>
+          <filter id="neon-blur">
+            <feGaussianBlur stdDeviation="2" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <linearGradient id="wheel-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#00e8ff"/>
+            <stop offset="100%" stop-color="#0066aa"/>
+          </linearGradient>
+          <!-- Animated dash for limitation zone -->
+          <marker id="arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="#ff0088"/>
+          </marker>
+        </defs>
+ 
+        <!-- Ground shadow -->
+        <ellipse cx="260" cy="330" rx="200" ry="18" fill="rgba(0,232,255,0.06)"/>
+ 
+        <!-- ── MOTORCYCLE BODY (MT-125 style) ── -->
+        <!-- Rear wheel -->
+        <circle cx="155" cy="285" r="52" fill="none" stroke="#1a2540" stroke-width="16"/>
+        <circle cx="155" cy="285" r="52" fill="none" stroke="url(#wheel-grad)" stroke-width="3.5"/>
+        <!-- Spokes rear -->
+        <g stroke="#00e8ff" stroke-width="1.2" opacity="0.6">
+          <line x1="155" y1="233" x2="155" y2="337"/>
+          <line x1="103" y1="285" x2="207" y2="285"/>
+          <line x1="119" y1="249" x2="191" y2="321"/>
+          <line x1="191" y1="249" x2="119" y2="321"/>
+        </g>
+        <circle cx="155" cy="285" r="10" fill="#0d1428" stroke="#00e8ff" stroke-width="2"/>
+ 
+        <!-- Front wheel -->
+        <circle cx="370" cy="285" r="52" fill="none" stroke="#1a2540" stroke-width="16"/>
+        <circle cx="370" cy="285" r="52" fill="none" stroke="url(#wheel-grad)" stroke-width="3.5"/>
+        <g stroke="#00e8ff" stroke-width="1.2" opacity="0.6">
+          <line x1="370" y1="233" x2="370" y2="337"/>
+          <line x1="318" y1="285" x2="422" y2="285"/>
+          <line x1="334" y1="249" x2="406" y2="321"/>
+          <line x1="406" y1="249" x2="334" y2="321"/>
+        </g>
+        <circle cx="370" cy="285" r="10" fill="#0d1428" stroke="#00e8ff" stroke-width="2"/>
+ 
+        <!-- Chain / swingarm -->
+        <path d="M155,285 Q180,295 210,288" fill="none" stroke="#1e2d48" stroke-width="6"/>
+        <path d="M155,285 Q180,295 210,288" fill="none" stroke="#334" stroke-width="3"/>
+ 
+        <!-- Frame / body shape -->
+        <path d="M155,280 L200,240 L240,195 L310,185 L370,195 L385,230 L370,280 L155,280 Z"
+              fill="#0c1526" stroke="#1e3050" stroke-width="1.5"/>
+ 
+        <!-- Engine block -->
+        <rect x="188" y="250" width="80" height="42" rx="5" fill="#0f1e35" stroke="#1e3050" stroke-width="1.5"/>
+        <rect x="198" y="258" width="22" height="16" rx="2" fill="#162038"/>
+        <rect x="228" y="258" width="22" height="16" rx="2" fill="#162038"/>
+ 
+        <!-- Tank -->
+        <path d="M240,195 L310,185 L330,210 L320,240 L230,245 L218,218 Z"
+              fill="#0d1a30" stroke="#00e8ff" stroke-width="1.5"/>
+        <!-- Tank highlight -->
+        <path d="M248,198 Q278,190 310,188 L325,208" fill="none" stroke="rgba(0,232,255,0.3)" stroke-width="1.5"/>
+ 
+        <!-- Seat -->
+        <path d="M218,218 L320,240 L310,255 L210,248 Z"
+              fill="#111a2c" stroke="#1e3050" stroke-width="1"/>
+ 
+        <!-- Fairings / bodywork -->
+        <path d="M370,195 L395,210 L400,245 L380,260 L365,240 L370,210 Z"
+              fill="#0e1a2f" stroke="#1e3050" stroke-width="1"/>
+ 
+        <!-- Fork (front suspension) -->
+        <line x1="370" y1="233" x2="360" y2="210" stroke="#1e3050" stroke-width="8"/>
+        <line x1="370" y1="233" x2="360" y2="210" stroke="#2a4060" stroke-width="5"/>
+        <line x1="376" y1="233" x2="366" y2="210" stroke="#1e3050" stroke-width="8"/>
+        <line x1="376" y1="233" x2="366" y2="210" stroke="#2a4060" stroke-width="5"/>
+ 
+        <!-- Handlebar -->
+        <path d="M356,210 Q363,195 373,190 Q383,185 388,190 L393,198"
+              fill="none" stroke="#2a4060" stroke-width="6"/>
+        <path d="M356,210 Q363,195 373,190 Q383,185 388,190 L393,198"
+              fill="none" stroke="#3d5070" stroke-width="3.5"/>
+        <!-- Grips -->
+        <rect x="348" y="207" width="14" height="6" rx="3" fill="#1a2840"/>
+        <rect x="390" y="193" width="14" height="6" rx="3" fill="#1a2840"/>
+ 
+        <!-- Headlight -->
+        <ellipse cx="392" cy="225" rx="18" ry="14" fill="#0d1428" stroke="#00e8ff" stroke-width="1.5"/>
+        <ellipse cx="392" cy="225" rx="12" ry="9" fill="#0a1020"/>
+        <!-- Headlight glow animation -->
+        <ellipse cx="392" cy="225" rx="12" ry="9" fill="rgba(0,232,255,0.15)">
+          <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/>
+        </ellipse>
+ 
+        <!-- Exhaust -->
+        <path d="M200,265 Q175,270 160,278 Q150,282 145,295"
+              fill="none" stroke="#1a2840" stroke-width="10"/>
+        <path d="M200,265 Q175,270 160,278 Q150,282 145,295"
+              fill="none" stroke="#243050" stroke-width="6"/>
+        <!-- Exhaust heat shimmer -->
+        <path d="M145,295 Q140,305 142,315" fill="none" stroke="rgba(255,114,0,0.4)" stroke-width="3">
+          <animate attributeName="stroke-opacity" values="0.4;0.8;0.2;0.6;0.4" dur="1.5s" repeatCount="indefinite"/>
+        </path>
+ 
+        <!-- Mirror -->
+        <line x1="356" y1="210" x2="342" y2="200" stroke="#2a4060" stroke-width="3"/>
+        <rect x="328" y="195" width="16" height="10" rx="2" fill="#0d1428" stroke="#2a4060" stroke-width="1"/>
+ 
+        <!-- Instrument cluster (small, naked-bike style) -->
+        <rect x="360" y="192" width="26" height="16" rx="4" fill="#080e1c" stroke="#00e8ff" stroke-width="1"/>
+        <text x="366" y="203" font-size="6" fill="#00e8ff" font-family="monospace">125</text>
+ 
+        <!-- ══ LIMITATION INDICATORS (animated) ══ -->
+ 
+        <!-- 1. NO HUD — no windshield -->
+        <g id="lim-hud">
+          <!-- Arrow pointing to instrument cluster area -->
+          <line x1="340" y1="150" x2="368" y2="192"
+                stroke="#ff0088" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)">
+            <animate attributeName="stroke-opacity" values="0;1;1;0" dur="3s" begin="0s" repeatCount="indefinite"/>
+          </line>
+          <rect x="270" y="128" width="70" height="22" rx="5" fill="rgba(255,0,136,0.12)" stroke="#ff0088" stroke-width="1">
+            <animate attributeName="opacity" values="0;1;1;0" dur="3s" begin="0s" repeatCount="indefinite"/>
+          </rect>
+          <text x="305" y="143" font-size="8" fill="#ff6eb0" text-anchor="middle" font-family="Inter, sans-serif">
+            <animate attributeName="opacity" values="0;1;1;0" dur="3s" begin="0s" repeatCount="indefinite"/>
+            Sin pantalla HUD
+          </text>
+        </g>
+ 
+        <!-- 2. NO blind spot detection — rear area -->
+        <g id="lim-blind">
+          <path d="M110,250 Q80,240 70,210 Q65,190 80,175"
+                fill="none" stroke="#ff7200" stroke-width="1.5" stroke-dasharray="4,3">
+            <animate attributeName="stroke-opacity" values="0;0;1;1;0" dur="3s" begin="1s" repeatCount="indefinite"/>
+          </path>
+          <circle cx="80" cy="165" r="24" fill="rgba(255,114,0,0.08)" stroke="#ff7200" stroke-width="1">
+            <animate attributeName="opacity" values="0;0;1;1;0" dur="3s" begin="1s" repeatCount="indefinite"/>
+          </circle>
+          <!-- Eye-slash icon -->
+          <text x="80" y="162" font-size="11" fill="#ff7200" text-anchor="middle">
+            <animate attributeName="opacity" values="0;0;1;1;0" dur="3s" begin="1s" repeatCount="indefinite"/>
+            🚫
+          </text>
+          <text x="80" y="174" font-size="7" fill="#ffa060" text-anchor="middle" font-family="Inter, sans-serif">
+            <animate attributeName="opacity" values="0;0;1;1;0" dur="3s" begin="1s" repeatCount="indefinite"/>
+            Ángulo muerto
+          </text>
+        </g>
+ 
+        <!-- 3. NO pedestrian detection — front road area -->
+        <g id="lim-ped">
+          <!-- Pedestrian silhouette ahead -->
+          <g opacity="0">
+            <animate attributeName="opacity" values="0;0;0;1;1;0" dur="3s" begin="2s" repeatCount="indefinite"/>
+            <circle cx="450" cy="270" r="8" fill="rgba(255,0,136,0.4)" stroke="#ff0088" stroke-width="1.5"/>
+            <rect x="446" y="278" width="8" height="14" rx="2" fill="rgba(255,0,136,0.4)" stroke="#ff0088" stroke-width="1"/>
+            <!-- Alert triangle above pedestrian -->
+            <polygon points="450,245 440,262 460,262" fill="none" stroke="#ff0088" stroke-width="1.5"/>
+            <text x="450" y="258" font-size="7" fill="#ff0088" text-anchor="middle">!</text>
+            <text x="450" y="240" font-size="7" fill="#ff6eb0" text-anchor="middle" font-family="Inter, sans-serif">Sin detección</text>
+          </g>
+        </g>
+ 
+        <!-- Our system badge — appears cyclically -->
+        <g opacity="0">
+          <animate attributeName="opacity" values="0;0;0;0;1;1;0" dur="5s" begin="0.5s" repeatCount="indefinite"/>
+          <rect x="150" y="40" width="220" height="32" rx="8"
+                fill="rgba(0,232,255,0.1)" stroke="#00e8ff" stroke-width="1.5"/>
+          <text x="260" y="61" font-size="10" fill="#00e8ff" text-anchor="middle" font-family="Inter, sans-serif" font-weight="600">
+            + Nuestro sistema lo resuelve ✓
+          </text>
+        </g>
+ 
+        <!-- Neon accent lines on bike -->
+        <path d="M230,245 L320,240" stroke="rgba(0,232,255,0.25)" stroke-width="1"/>
+        <path d="M240,195 Q275,188 310,185" stroke="rgba(136,68,255,0.3)" stroke-width="1.5"/>
+ 
+        <!-- Ground line -->
+        <line x1="60" y1="337" x2="460" y2="337" stroke="rgba(0,232,255,0.15)" stroke-width="1"/>
+        <line x1="60" y1="337" x2="460" y2="337" stroke="rgba(0,232,255,0.08)" stroke-width="3" filter="url(#neon-blur)"/>
+      </svg>
+ 
+      <div class="hud-bar">
+        <span class="hud-rec"></span>
+        YAMAHA MT-125 &nbsp;·&nbsp; SIN ASISTENTES DE SERIE &nbsp;·&nbsp; SISTEMA ACTIVO: NUESTRO PROTOTIPO
+      </div>
+    </div>
+ 
+    <!-- Limitation badges below SVG -->
+    <div class="limit-badges" id="limitBadges">
+      <span class="lbadge">Sin pantalla HUD</span>
+      <span class="lbadge">Sin detección de peatones</span>
+      <span class="lbadge">Sin vigilancia de ángulo muerto</span>
+      <span class="lbadge vs-good">Con nuestro prototipo: alertas en tiempo real</span>
+    </div>
+  </div>
+ 
+  <!-- Text side -->
+  <div class="moto-text-side" id="motoText">
+    <p class="moto-tag">El reto que abordamos</p>
+    <h2 class="moto-title">Yamaha<br><span>MT-125</span><br>sin asistentes</h2>
+    <p class="moto-desc">
+      Las motocicletas de 125 cc como la MT-125 solo tienen ABS obligatorio por ley.
+      Sin pantalla HUD, sin detección de peatones, sin aviso de ángulo muerto.
+      Nuestro proyecto busca cambiar eso.
+    </p>
+ 
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th>Función</th>
+          <th>Sin sistema</th>
+          <th>Con nuestro sistema</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="label">Detección de peatones</td>
+          <td class="before">✗ No</td>
+          <td class="after">✓ Tiempo real</td>
+        </tr>
+        <tr>
+          <td class="label">Alerta de distancia</td>
+          <td class="before">✗ No</td>
+          <td class="after">✓ 3 niveles</td>
+        </tr>
+        <tr>
+          <td class="label">Dirección del peligro</td>
+          <td class="before">✗ No</td>
+          <td class="after">✓ Izq / Centro / Der</td>
+        </tr>
+        <tr>
+          <td class="label">Indicación sonora</td>
+          <td class="before">✗ No</td>
+          <td class="after">✓ Pitido estéreo</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+ 
+<div class="divider"></div>
+ 
+<!-- ═══ DEMO EN ACCIÓN ═══ -->
+<section class="section reveal-section">
+  <p class="section-tag">Visualización</p>
+  <h2 class="section-headline">El sistema<br>en acción</h2>
+  <p class="section-body">El trapecio delimita la zona de carretera. El rectángulo cambia de color y la frecuencia del pitido aumenta según la distancia.</p>
   <div class="demo-area">
     <div class="demo-visual">
       <div class="cam-view">
-        <div class="road"></div><div class="road-line"></div>
-        <div class="person person-a"><div class="person-head"></div><div class="person-body"></div></div>
-        <div class="person-box box-a"><span class="detection-label label-a" id="detLabel">CERCA</span></div>
+        <div class="road"></div>
+        <div class="road-dashes"></div>
+        <div class="trap-glow"></div>
         <div class="trapezoid-outline"></div>
-        <div class="cam-ui"><span class="cam-dot"></span>REC &nbsp;|&nbsp; <span id="camDir">CENTRO</span></div>
+        <div class="person-fig" style="left:50%">
+          <div class="person-head"></div>
+          <div class="person-body"></div>
+        </div>
+        <div class="det-box">
+          <span class="det-label" id="detLabel" style="background:var(--magenta);color:#fff">CERCA</span>
+        </div>
+        <div class="cam-hud">
+          <span class="cam-blink"></span>REC &nbsp;|&nbsp; DIR: <span id="camDir">CENTRO</span>
+        </div>
       </div>
     </div>
     <div class="demo-info">
-      <div class="sound-indicator">
-        <p class="sound-title">🔊 Altavoces activos</p>
+      <div class="info-card">
+        <p class="info-card-title">🔊 Altavoces activos</p>
         <div class="speaker-row">
-          <div class="speaker"><span class="speaker-icon">◀</span><div class="speaker-label">Izq</div><div class="speaker-bar"><div class="speaker-fill fill-left"></div></div></div>
-          <div class="speaker-sep">|</div>
-          <div class="speaker"><span class="speaker-icon">▶</span><div class="speaker-label">Der</div><div class="speaker-bar"><div class="speaker-fill fill-right"></div></div></div>
+          <div class="speaker">
+            <span class="speaker-icon">◀</span>
+            <div class="speaker-name">Izq</div>
+            <div class="spk-bar"><div class="spk-fill spk-l"></div></div>
+          </div>
+          <div class="spk-sep">|</div>
+          <div class="speaker">
+            <span class="speaker-icon">▶</span>
+            <div class="speaker-name">Der</div>
+            <div class="spk-bar"><div class="spk-fill spk-r"></div></div>
+          </div>
         </div>
-        <div class="freq-display"><span class="freq-label">Frecuencia del pitido</span><span class="freq-val" id="freqVal">2400 Hz</span></div>
+        <div class="freq-row">
+          <span class="freq-lbl">Frecuencia del pitido</span>
+          <span class="freq-val" id="freqVal">2400 Hz</span>
+        </div>
       </div>
-      <div class="color-legend">
-        <p class="legend-title">🎨 Color del rectángulo</p>
-        <div class="legend-item"><div class="legend-dot" style="background:#00ff41"></div><div><div class="legend-text">Verde — LEJOS</div><div class="legend-sub">Sin peligro inmediato</div></div></div>
-        <div class="legend-item"><div class="legend-dot" style="background:#ffe600"></div><div><div class="legend-text">Amarillo — MEDIA</div><div class="legend-sub">Precaución, se acerca</div></div></div>
-        <div class="legend-item"><div class="legend-dot" style="background:#ff3d6b"></div><div><div class="legend-text">Rojo — CERCA</div><div class="legend-sub">¡Peligro! Ceder el paso</div></div></div>
+      <div class="info-card">
+        <p class="info-card-title">🎨 Código de colores</p>
+        <div class="legend-row"><div class="legend-dot" style="background:#00ff90"></div><div><div class="legend-name">Verde — LEJOS</div><div class="legend-sub">Sin peligro inmediato</div></div></div>
+        <div class="legend-row"><div class="legend-dot" style="background:#ffdd00"></div><div><div class="legend-name">Amarillo — MEDIA</div><div class="legend-sub">Precaución, se acerca</div></div></div>
+        <div class="legend-row"><div class="legend-dot" style="background:#ff0088"></div><div><div class="legend-name">Rojo — CERCA</div><div class="legend-sub">¡Peligro! Ceder el paso</div></div></div>
       </div>
     </div>
   </div>
 </section>
-
+ 
 <div class="divider"></div>
-
-<!-- ═══ TECH ═══ -->
-<section class="reveal-section">
-  <p class="section-label">Herramientas</p>
-  <h2 class="section-title">Construido<br>con</h2>
-  <p class="section-body">Librerías de Python de código abierto combinadas para crear un sistema funcional desde cero.</p>
+ 
+<!-- ═══ TECNOLOGÍA ═══ -->
+<section class="section reveal-section">
+  <p class="section-tag">Stack técnico</p>
+  <h2 class="section-headline">Construido<br>con</h2>
+  <p class="section-body">Cinco librerías de Python de código abierto combinadas para crear un sistema funcional desde cero.</p>
   <div class="tech-grid">
     <div class="tech-card"><span class="tech-icon">🐍</span><div class="tech-name">Python</div><div class="tech-desc">Lenguaje principal</div></div>
-    <div class="tech-card"><span class="tech-icon">🧠</span><div class="tech-name">YOLOv8</div><div class="tech-desc">IA de detección en tiempo real</div></div>
-    <div class="tech-card"><span class="tech-icon">📷</span><div class="tech-name">OpenCV</div><div class="tech-desc">Captura y procesamiento de vídeo</div></div>
+    <div class="tech-card"><span class="tech-icon">🧠</span><div class="tech-name">YOLOv8</div><div class="tech-desc">IA detección en tiempo real</div></div>
+    <div class="tech-card"><span class="tech-icon">📷</span><div class="tech-name">OpenCV</div><div class="tech-desc">Captura y procesado de vídeo</div></div>
     <div class="tech-card"><span class="tech-icon">🔊</span><div class="tech-name">Pygame</div><div class="tech-desc">Audio estéreo generado</div></div>
-    <div class="tech-card"><span class="tech-icon">🔢</span><div class="tech-name">NumPy</div><div class="tech-desc">Cálculo de señales y máscaras</div></div>
+    <div class="tech-card"><span class="tech-icon">🔢</span><div class="tech-name">NumPy</div><div class="tech-desc">Señales y máscaras de imagen</div></div>
   </div>
 </section>
-
+ 
 <div class="divider"></div>
-
+ 
 <!-- ═══ FUTURO ═══ -->
-<section class="reveal-section">
-  <p class="section-label">¿Qué sigue?</p>
-  <h2 class="section-title">Ideas para<br>mejorar</h2>
-  <p class="section-body">Este es solo el primer paso. Hay mucho recorrido por delante.</p>
+<section class="section reveal-section">
+  <p class="section-tag">¿Qué sigue?</p>
+  <h2 class="section-headline">Ideas para<br>mejorar</h2>
+  <p class="section-body">Este es solo el primer paso. Hay mucho recorrido por delante para hacer el sistema más completo.</p>
   <ul class="future-list">
-    <li class="future-item"><span class="future-icon">🚴</span><div class="future-text"><h4>Más tipos de vehículos</h4><p>Distinguir motos, bicicletas y peatones</p></div></li>
-    <li class="future-item"><span class="future-icon">🌧️</span><div class="future-text"><h4>Cualquier condición meteorológica</h4><p>Mejorar la detección con poca luz o lluvia</p></div></li>
-    <li class="future-item"><span class="future-icon">📐</span><div class="future-text"><h4>Calibración automática del trapecio</h4><p>Que la zona de detección se ajuste sola</p></div></li>
-    <li class="future-item"><span class="future-icon">🛑</span><div class="future-text"><h4>Reconocimiento de señales</h4><p>Avisar de señales STOP, límites de velocidad...</p></div></li>
-    <li class="future-item"><span class="future-icon">🏍️</span><div class="future-text"><h4>Integración en la MT-125</h4><p>Pasar del prototipo al sistema real en la moto</p></div></li>
+    <li class="future-item"><span class="f-icon">🚴</span><div><p class="f-title">Más tipos de obstáculos</p><p class="f-desc">Distinguir motos, bicicletas y otros vehículos, ajustando las alertas según el nivel de peligro.</p></div></li>
+    <li class="future-item"><span class="f-icon">🌧️</span><div><p class="f-title">Funcionamiento en cualquier condición</p><p class="f-desc">Mejorar la precisión con poca luz, lluvia o niebla para uso 24 horas.</p></div></li>
+    <li class="future-item"><span class="f-icon">📐</span><div><p class="f-title">Calibración automática del trapecio</p><p class="f-desc">Que la zona de detección se ajuste sola al ancho de la carretera, eliminando zonas muertas.</p></div></li>
+    <li class="future-item"><span class="f-icon">🛑</span><div><p class="f-title">Reconocimiento de señales</p><p class="f-desc">Detectar señales STOP, límites de velocidad y pasos de peatones para alertar al conductor.</p></div></li>
+    <li class="future-item"><span class="f-icon">🏍️</span><div><p class="f-title">Integración real en la MT-125</p><p class="f-desc">Pasar del prototipo de escritorio a un sistema embarcado directamente en la moto.</p></div></li>
   </ul>
 </section>
-
-<div class="divider"></div>
-
-<!-- ═══ INVITACIÓN ═══ -->
-<div class="invitation-wrap">
-  <div class="invite-stars" id="inviteStars"></div>
-  <div class="invitation-section" id="inviteSection">
-
-    <p class="invite-eyebrow" id="iEyebrow">🏍️ &nbsp; TE ESPERAMOS EN LA EXPOSICIÓN &nbsp; 🏍️</p>
-
-    <h2 class="invite-title" id="iTitle">
-      <span class="hl-cyan">¡NOS</span><br>
-      <span class="hl-red">VEMOS</span><br>
-      EL 20
-    </h2>
-
-    <p class="invite-sub" id="iSub">
-      Ven a ver el proyecto en persona, hacer pruebas en directo y conocer todo lo que hay detrás del código. ¡Entrada libre!
-    </p>
-
-    <div class="date-chips" id="iChips">
-      <div class="date-chip"><span class="ci">📅</span><div><strong>20 de abril</strong><small>Domingo</small></div></div>
-      <div class="date-chip"><span class="ci">🕓</span><div><strong>16:00 h</strong><small>Hora de inicio</small></div></div>
-      <div class="date-chip"><span class="ci">🏫</span><div><strong>CPR Liceo La Paz</strong><small>Entrada libre</small></div></div>
-    </div>
-
-    <!-- VIDEO -->
-    <div class="video-outer" id="iVideo">
-      <div class="video-glow"></div>
-      <div class="video-ring-wrap">
-        <div class="video-inner">
-          <iframe
-            src="https://www.youtube.com/embed/Xt3PxzttEms?controls=1&rel=0&playsinline=1"
-            title="Asistentes Visuales en Vehículos — Preview"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen
-          ></iframe>
-        </div>
-      </div>
-    </div>
-
-    <div id="confettiAnchor" style="position:relative;height:0"></div>
-
-  </div>
-</div>
-
+ 
 <!-- ═══ FOOTER ═══ -->
 <footer>
   <div class="footer-logo">AVV</div>
   <p><strong>CPR Liceo La Paz</strong> × <strong>Universidade da Coruña</strong></p>
   <p style="margin-top:.5rem">Trabajo STEMBACH · Bienio 2024–2026</p>
-  <p style="margin-top:1rem;font-size:.7rem;opacity:.4">Pablo Castelao Fernández · Alejandro Lago Dopazo</p>
+  <p style="margin-top:.9rem;font-size:.7rem;opacity:.35">Pablo Castelao Fernández · Alejandro Lago Dopazo</p>
 </footer>
-
+ 
 <script>
 /* ── PARTICLES ── */
 const pc = document.getElementById('particles');
-for(let i=0;i<40;i++){
-  const p = document.createElement('div');
-  p.className = 'particle';
-  p.style.cssText = `left:${Math.random()*100}%;width:${Math.random()*3+1}px;height:${Math.random()*3+1}px;animation-duration:${Math.random()*8+6}s;animation-delay:${Math.random()*8}s`;
+for(let i=0;i<50;i++){
+  const p=document.createElement('div'); p.className='pt';
+  const col=['#00e8ff','#8844ff','#ff0088','#00ff90','#ffdd00'][Math.floor(Math.random()*5)];
+  p.style.cssText=`left:${Math.random()*100}%;width:${Math.random()*2.5+1}px;height:${Math.random()*2.5+1}px;background:${col};animation-duration:${Math.random()*9+5}s;animation-delay:${Math.random()*9}s`;
   pc.appendChild(p);
 }
-
-/* ── STARS IN INVITE ── */
-const sc = document.getElementById('inviteStars');
-for(let i=0;i<80;i++){
-  const s = document.createElement('div');
-  s.className = 'star';
-  const sz = Math.random()*2.5+0.5;
-  s.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation-duration:${Math.random()*3+2}s;animation-delay:${Math.random()*4}s`;
-  sc.appendChild(s);
-}
-
+ 
 /* ── INTERSECTION OBSERVER ── */
-const io = new IntersectionObserver(entries => {
-  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
-}, {threshold:0.15});
-
-document.querySelectorAll('.reveal-section,.stat-card,.step,.tech-card,.future-item').forEach(el => io.observe(el));
-
-/* Moto */
-const mObs = new IntersectionObserver(entries => {
-  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
-},{threshold:0.2});
-['motoPhotoWrap','motoTextSide'].forEach(id => mObs.observe(document.getElementById(id)));
-
-/* Invitation */
-let confettiFired = false;
-const iObs = new IntersectionObserver(entries => {
-  entries.forEach(e => {
+const io=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
+},{threshold:0.12});
+document.querySelectorAll('.reveal-section,.stat-card,.step,.tech-card,.future-item').forEach(el=>io.observe(el));
+ 
+/* Moto section */
+const mObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
     if(e.isIntersecting){
-      ['iEyebrow','iTitle','iSub','iChips','iVideo'].forEach(id => document.getElementById(id).classList.add('vis'));
-      if(!confettiFired){ confettiFired = true; setTimeout(fireConfetti, 600); }
+      e.target.classList.add('visible');
+      // Stagger limitation badges
+      document.querySelectorAll('#limitBadges .lbadge').forEach((b,i)=>{
+        setTimeout(()=>b.classList.add('vis'),400+i*180);
+      });
     }
   });
-},{threshold:0.25});
-iObs.observe(document.getElementById('inviteSection'));
-
+},{threshold:0.15});
+['motoWrap','motoText'].forEach(id=>{ const el=document.getElementById(id); if(el) mObs.observe(el); });
+ 
 /* ── DEMO ANIMATION ── */
-const dStates = [
-  {freq:'680 Hz', label:'LEJOS', color:'#00ff41', tc:'#000'},
-  {freq:'1200 Hz',label:'MEDIA', color:'#ffe600', tc:'#000'},
-  {freq:'2800 Hz',label:'CERCA', color:'#ff3d6b', tc:'#fff'},
-  {freq:'3500 Hz',label:'CERCA', color:'#ff3d6b', tc:'#fff'},
-  {freq:'1800 Hz',label:'MEDIA', color:'#ffe600', tc:'#000'},
-  {freq:'740 Hz', label:'LEJOS', color:'#00ff41', tc:'#000'},
+const states=[
+  {freq:'680 Hz', label:'LEJOS', col:'#00ff90', tc:'#000'},
+  {freq:'1100 Hz',label:'MEDIA', col:'#ffdd00', tc:'#000'},
+  {freq:'2600 Hz',label:'CERCA', col:'#ff0088', tc:'#fff'},
+  {freq:'3400 Hz',label:'CERCA', col:'#ff0088', tc:'#fff'},
+  {freq:'1800 Hz',label:'MEDIA', col:'#ffdd00', tc:'#000'},
+  {freq:'700 Hz', label:'LEJOS', col:'#00ff90', tc:'#000'},
 ];
 let di=0;
-const fEl = document.getElementById('freqVal');
-const lEl = document.getElementById('detLabel');
+const fEl=document.getElementById('freqVal');
+const lEl=document.getElementById('detLabel');
 setInterval(()=>{
-  const s = dStates[di++ % dStates.length];
-  fEl.textContent = s.freq;
-  lEl.textContent = s.label;
-  lEl.style.background = s.color;
-  lEl.style.color = s.tc;
-},1200);
-
-/* ── CONFETTI ── */
-function fireConfetti(){
-  const colors=['#00e5ff','#ff3d6b','#ffe600','#a855f7','#00ff41','#fff'];
-  for(let i=0;i<80;i++){
-    const c = document.createElement('div');
-    c.className = 'confetti-piece';
-    const angle = Math.random()*360;
-    const dist  = 100+Math.random()*250;
-    const x = Math.cos(angle*Math.PI/180)*dist;
-    const y = -(50+Math.random()*300);
-    c.style.cssText = `
-      background:${colors[Math.floor(Math.random()*colors.length)]};
-      left:${30+Math.random()*40}vw;
-      top:50vh;
-      --tx:${x}px; --ty:${y}px;
-      --rot:${Math.random()*720-360}deg;
-      animation-delay:${Math.random()*.8}s;
-      animation-duration:${1.8+Math.random()}s;
-      border-radius:${Math.random()>.5?'50%':'2px'};
-      width:${6+Math.random()*10}px;
-      height:${6+Math.random()*10}px;
-    `;
-    document.body.appendChild(c);
-    setTimeout(()=>c.remove(), 3500);
-  }
-}
+  const s=states[di++%states.length];
+  fEl.textContent=s.freq;
+  lEl.textContent=s.label;
+  lEl.style.background=s.col;
+  lEl.style.color=s.tc;
+},1300);
 </script>
 </body>
 </html>
